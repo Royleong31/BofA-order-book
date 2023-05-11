@@ -46,8 +46,8 @@ export default class OrderInjector {
 
   startExchange() {
     const lineReader = readline.createInterface({
-      // input: fs.createReadStream("./csv/testdata_orders.csv"),
-      input: fs.createReadStream("./csv/testdata_orders_simpler_case.csv"),
+      input: fs.createReadStream("./csv/testdata_orders.csv"),
+      // input: fs.createReadStream("./csv/testdata_orders_simpler_case.csv"),
     });
     const allLineDataObjs: any = [];
 

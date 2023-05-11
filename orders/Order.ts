@@ -71,14 +71,9 @@ export default class Order {
     if (this.onFillCallback) {
       this.onFillCallback(fill);
     }
-    // create a fill object and insert into the fills array
-    // print out the fill info
   }
 
-  printOrder() {}
-
   // delete from order book, but keep it in the orders array
-  // TODO: Deal with partial orders
   cancel() {
     this.isCancelled = true;
   }
