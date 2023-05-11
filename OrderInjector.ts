@@ -46,6 +46,7 @@ export default class OrderInjector {
 
   startExchange() {
     const lineReader = readline.createInterface({
+      // input: fs.createReadStream("./csv/testdata_orders.csv"),
       input: fs.createReadStream("./csv/testdata_orders_simpler_case.csv"),
     });
     const allLineDataObjs: any = [];
@@ -108,9 +109,12 @@ export default class OrderInjector {
     });
 
     if (destination === "L") {
+      console.log(`[${order.id}][${order.venue}] ${order.side} ${order.quantity} @ ${order.price}`);
+
       this.router.addToLitPool(order);
     } else if (destination === "D") {
       this.router.addToDarkPool(order);
+      console.log(`[${order.id}][${order.venue}] ${order.side} ${order.quantity} @ ${order.price}`);
     } else if (destination === "SOR") {
       this.router.addToSOR(time, orderInput);
     } else {

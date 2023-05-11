@@ -53,11 +53,19 @@ export default class Order {
       this.commission += (fill.price * fill.quantity * 0.0001) / 100;
     }
 
+    console.log(
+      `[${this.id}] [${this.venue}] Filled: ${fill.quantity}@${
+        fill.price
+      }, Cumulative filled quantity: ${this.filledQuantity()}, Average fill price: ${this.averageFillPrice()}`
+    );
     if (this.filledQuantity() < this.quantity) {
       this.status = OrderStatus.PARTIAL;
     } else {
       this.status = OrderStatus.FULL;
-      console.log(this);
+
+      console.log(
+        `[${this.id}] [${this.venue}] Completed Average fill price: ${this.averageFillPrice()}`
+      );
     }
 
     if (this.onFillCallback) {

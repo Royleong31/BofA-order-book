@@ -46,9 +46,6 @@ export default abstract class OrderBook {
     let highestBidPrice = Number(buyPrices[0]);
     let lowestAskPrice = Number(sellPrices[0]);
 
-    if (highestBidPrice >= lowestAskPrice) {
-      console.log("entering while loop");
-    }
     while (highestBidPrice >= lowestAskPrice) {
       // each iteraction will generate 1 fill
       const clearingBid = this.bidTable[highestBidPrice.toFixed(2)][0];
@@ -69,7 +66,6 @@ export default abstract class OrderBook {
         time,
         venue: this.venue,
       });
-      console.log(fill);
 
       clearingBid.partiallyFillOrder(fill);
       clearingAsk.partiallyFillOrder(fill);
@@ -99,18 +95,15 @@ export default abstract class OrderBook {
 
       if (buyPrices.length === 0) {
         this.bidTable = {};
-        // console.log("ended because bid table is empty");
         break;
       }
       if (sellPrices.length === 0) {
-        // console.log("ended because ask table is empty");
         this.askTable = {};
         break;
       }
 
       highestBidPrice = Number(buyPrices[0]);
       lowestAskPrice = Number(sellPrices[0]);
-      // console.log("highest bid", highestBidPrice, "lowest ask", lowestAskPrice);
     }
   }
 
