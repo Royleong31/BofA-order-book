@@ -1,8 +1,8 @@
-import Fill from "../Fill";
-import OrderBookType from "../enums/OrderBookType";
-import OrderStatus from "../enums/OrderStatus";
-import OrderBook from "../orderBook/OrderBook";
-import Order from "../orders/Order";
+import Fill from '../Fill';
+import OrderBookType from '../enums/OrderBookType';
+import OrderStatus from '../enums/OrderStatus';
+import OrderBook from '../orderBook/OrderBook';
+import Order from '../orders/Order';
 
 class ParentOrder {
   private order: Order; //original parent order
@@ -12,9 +12,9 @@ class ParentOrder {
     const orderInput = {
       side: this.order.side,
       price: price,
-      id: this.order.id + "-" + (this.childOrders.length + 1),
+      id: this.order.id + '-' + (this.childOrders.length + 1),
       venue: venue,
-      effectiveTime: "", //get latest order and time from lit pool
+      effectiveTime: '', //get latest order and time from lit pool
       expiryTime: this.order.expiryTime,
       quantity: quantity,
       status: this.order.status,
