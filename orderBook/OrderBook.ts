@@ -6,25 +6,18 @@ import { compareTime } from "../utils/compareTime";
 
 export default abstract class OrderBook {
   abstract venue: OrderBookType;
+
   // Only contain elements that have orders, so the array should never be empty
-  private bidTable: Record<number, Order[]> = {}; //FIFO in from back of array, out from front
-  private askTable: Record<number, Order[]> = {};
+  protected bidTable: Record<number, Order[]> = {}; //FIFO in from back of array, out from front
+  protected askTable: Record<number, Order[]> = {};
 
-  bid(order: Order) {
-    if (order.side != OrderSide.BUY) {
-      throw "not a buy order";
+  placeOrder(order: Order) {
+    if (order.side === OrderSide.BUY) {
+      this.bidTable[order.price].push(order);
+    } else if (order.side === OrderSide.SELL) {
+      this.askTable[order.price].push(order);
     }
 
-    this.bidTable[order.price].push(order);
-    this.match(order.effectiveTime);
-  }
-
-  ask(order: Order) {
-    if (order.side != OrderSide.SELL) {
-      throw "not a buy order";
-    }
-
-    this.bidTable[order.price].push(order);
     this.match(order.effectiveTime);
   }
 
@@ -39,7 +32,7 @@ export default abstract class OrderBook {
 
   // called continuously when order book changes
   // whenever bid, ask, cancel are called
-  private match(time: string) {
+  protected match(time: string) {
     // desc order
     const buyPrices = Object.keys(this.bidTable)
       .map((price) => parseInt(price))
@@ -101,6 +94,14 @@ export default abstract class OrderBook {
 
       highestBidPrice = buyPrices[0];
       lowestAskPrice = sellPrices[0];
+
+      if (clearingAsk.onFillCallback) {
+        clearingAsk.onFillCallback(fill);
+      }
+
+      if (clearingBid.onFillCallback) {
+        clearingBid.onFillCallback(fill);
+      }
     }
   }
 

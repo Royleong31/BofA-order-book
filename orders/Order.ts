@@ -12,6 +12,7 @@ interface OrderInput {
   expiryTime?: string; // may not have this
   quantity: number;
   status: OrderStatus;
+  onFillCallback?: (fill: Fill) => void;
 }
 
 export default class Order {
@@ -23,6 +24,8 @@ export default class Order {
   effectiveTime: string; // time string to be converted to number for easier ordering
   expiryTime?: string; // may not have this
   cancelTime?: string; // may not have this
+  commission: number = 0;
+  onFillCallback?: (fill: Fill) => void;
 
   quantity: number;
 
@@ -38,11 +41,17 @@ export default class Order {
     this.expiryTime = inputObj.expiryTime;
     this.quantity = inputObj.quantity;
     this.status = inputObj.status;
+    this.onFillCallback = inputObj.onFillCallback;
   }
 
   // called by OrderBook in match
   partiallyFillOrder(fill: Fill) {
     this.fills.push(fill);
+
+    if (this.venue === OrderBookType.LIT_POOL) {
+      // 0.0001% of the total price
+      this.commission += (fill.price * fill.quantity * 0.0001) / 100;
+    }
     // create a fill object and insert into the fills array
     // print out the fill info
   }
