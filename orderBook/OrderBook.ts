@@ -13,8 +13,16 @@ export default abstract class OrderBook {
 
   placeOrder(order: Order) {
     if (order.side === OrderSide.BUY) {
+      if (this.bidTable[order.price] === undefined) {
+        this.bidTable[order.price] = [];
+      }
+
       this.bidTable[order.price].push(order);
     } else if (order.side === OrderSide.SELL) {
+      if (this.askTable[order.price] === undefined) {
+        this.askTable[order.price] = [];
+      }
+
       this.askTable[order.price].push(order);
     }
 
@@ -26,16 +34,16 @@ export default abstract class OrderBook {
   protected match(time: string) {
     // desc order
     const buyPrices = Object.keys(this.bidTable)
-      .map((price) => parseInt(price))
-      .sort((a, b) => b - a);
+      .map((price) => price)
+      .sort((a, b) => +b - +a);
 
     // asc order
     const sellPrices = Object.keys(this.askTable)
-      .map((price) => parseInt(price))
-      .sort((a, b) => a - b);
+      .map((price) => price)
+      .sort((a, b) => +a - +b);
 
-    let highestBidPrice = buyPrices[0];
-    let lowestAskPrice = sellPrices[0];
+    let highestBidPrice = Number(buyPrices[0]);
+    let lowestAskPrice = Number(sellPrices[0]);
 
     while (highestBidPrice >= lowestAskPrice) {
       // each iteraction will generate 1 fill
@@ -44,6 +52,7 @@ export default abstract class OrderBook {
       // want the earlier order to be the clearing price if the prices are different
       // if it's the same, will use the clearingBid price
       // TODO: Use an order counter
+
       const price = compareTime(clearingBid.effectiveTime, clearingAsk.effectiveTime)
         ? clearingAsk.price
         : clearingBid.price;
@@ -56,49 +65,69 @@ export default abstract class OrderBook {
         time,
         venue: this.venue,
       });
+      console.log(fill);
 
       clearingBid.partiallyFillOrder(fill);
       clearingAsk.partiallyFillOrder(fill);
 
       if (clearingBid.remainingQuantity() === 0) {
         this.bidTable[highestBidPrice].shift();
-        if (this.bidTable[highestBidPrice].length === 0) {
+        if (this.bidTable[highestBidPrice]?.length === 0) {
           delete this.bidTable[highestBidPrice];
         }
       }
 
       if (clearingAsk.remainingQuantity() === 0) {
         this.askTable[lowestAskPrice].shift();
-        if (this.bidTable[highestBidPrice].length === 0) {
-          delete this.bidTable[highestBidPrice];
+        if (this.askTable[lowestAskPrice]?.length === 0) {
+          delete this.askTable[lowestAskPrice];
         }
       }
 
       const buyPrices = Object.keys(this.bidTable)
-        .map((price) => parseInt(price))
-        .sort((a, b) => b - a);
+        .map((price) => price)
+        .sort((a, b) => +b - +a);
 
       // asc order
       const sellPrices = Object.keys(this.askTable)
-        .map((price) => parseInt(price))
-        .sort((a, b) => a - b);
+        .map((price) => price)
+        .sort((a, b) => +a - +b);
 
-      highestBidPrice = buyPrices[0];
-      lowestAskPrice = sellPrices[0];
+      if (buyPrices.length === 0) {
+        this.bidTable = {};
+        break;
+      }
+      if (sellPrices.length === 0) {
+        this.askTable = {};
+        break;
+      }
+
+      highestBidPrice = Number(buyPrices[0]);
+      lowestAskPrice = Number(sellPrices[0]);
+      console.log(highestBidPrice, lowestAskPrice);
     }
   }
 
   // remove from order book but keep in OrderRouter
+  // ?: Test data not using this, it's just for completeness
   cancelOrder(order: Order) {
     order.cancel();
 
     if (order.side === OrderSide.BUY) {
+      if (this.bidTable[order.price] === undefined) {
+        this.bidTable[order.price] = [];
+      }
+
       this.bidTable[order.price] = this.bidTable[order.price].filter((prev) => prev.id != order.id);
 
       if (this.bidTable[order.price].length === 0) {
         delete this.bidTable[order.price];
       }
     } else if (order.side === OrderSide.SELL) {
+      if (this.askTable[order.price] === undefined) {
+        this.askTable[order.price] = [];
+      }
+
       this.askTable[order.price] = this.askTable[order.price].filter((prev) => prev.id != order.id);
 
       if (this.askTable[order.price].length === 0) {

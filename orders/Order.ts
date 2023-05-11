@@ -57,6 +57,7 @@ export default class Order {
       this.status = OrderStatus.PARTIAL;
     } else {
       this.status = OrderStatus.FULL;
+      console.log(this);
     }
 
     if (this.onFillCallback) {

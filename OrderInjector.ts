@@ -73,7 +73,6 @@ export default class OrderInjector {
           } else {
             orderObj[tagDict[orderInfo[0]]] = orderInfo[1];
           }
-          console.log(orderObj);
         }
 
         ordersInThisLine.push(orderObj);
@@ -85,15 +84,11 @@ export default class OrderInjector {
 
     lineReader.on("close", () => {
       this.orderHelper(allLineDataObjs);
-      console.log("all done, son");
     });
   }
 
   orderHelper(orderInputs: Array<{ time: string; orders: OrderInput[] }>) {
-    // const firstTimeOrders = orderInputs[0]["orders"];
     for (let orderInfo of orderInputs) {
-      console.log(orderInfo);
-
       for (let order of orderInfo["orders"]) {
         this.addOrderToRouter(orderInfo["time"], order);
       }
@@ -118,8 +113,8 @@ export default class OrderInjector {
       this.router.addToDarkPool(order);
     } else if (destination === "SOR") {
       this.router.addToSOR(time, orderInput);
+    } else {
+      throw "invalid order destination";
     }
-
-    throw "invalid order destination";
   }
 }

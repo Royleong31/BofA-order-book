@@ -12,8 +12,8 @@ export default class Router {
   private darkPool: DarkPool;
 
   // Used to calculate estimate of current book state of dark pool
-  private sorDarkPoolFills: Fill[];
-  private sorDarkPoolOrdersPlaced: Order[] = [];
+  // private sorDarkPoolFills: Fill[];
+  // private sorDarkPoolOrdersPlaced: Order[] = [];
 
   constructor() {
     this.litPool = new LitPool();
