@@ -104,7 +104,7 @@ export default class OrderInjector {
       quantity: orderInput.quantity,
       side: orderInput.side,
       status: OrderStatus.NEW,
-      venue: OrderBookType.LIT_POOL,
+      venue: destination === "L" ? OrderBookType.LIT_POOL : OrderBookType.DARK_POOL,
     });
 
     if (destination === "L") {
