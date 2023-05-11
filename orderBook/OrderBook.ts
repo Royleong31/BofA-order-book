@@ -54,9 +54,9 @@ export default abstract class OrderBook {
       // if it's the same, will use the clearingBid price
       // TODO: Use an order counter
 
-      const price = compareTime(clearingBid.effectiveTime, clearingAsk.effectiveTime)
-        ? clearingAsk.price
-        : clearingBid.price;
+      const price = compareTime(clearingAsk.effectiveTime, clearingBid.effectiveTime)
+        ? clearingBid.price
+        : clearingAsk.price;
 
       const fill = new Fill({
         askOrderId: clearingAsk.id,
