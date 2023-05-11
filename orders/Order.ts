@@ -52,6 +52,16 @@ export default class Order {
       // 0.0001% of the total price
       this.commission += (fill.price * fill.quantity * 0.0001) / 100;
     }
+
+    if (this.filledQuantity() < this.quantity) {
+      this.status = OrderStatus.PARTIAL;
+    } else {
+      this.status = OrderStatus.FULL;
+    }
+
+    if (this.onFillCallback) {
+      this.onFillCallback(fill);
+    }
     // create a fill object and insert into the fills array
     // print out the fill info
   }
@@ -59,6 +69,7 @@ export default class Order {
   printOrder() {}
 
   // delete from order book, but keep it in the orders array
+  // TODO: Deal with partial orders
   cancel() {
     this.isCancelled = true;
   }

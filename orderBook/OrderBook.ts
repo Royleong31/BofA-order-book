@@ -21,15 +21,6 @@ export default abstract class OrderBook {
     this.match(order.effectiveTime);
   }
 
-  cancel(order: Order) {
-    if (order.side == OrderSide.BUY) {
-      this.bidTable[order.price] = this.bidTable[order.price].filter((prev) => prev.id != order.id);
-    } else {
-      this.askTable[order.price] = this.askTable[order.price].filter((prev) => prev.id != order.id);
-    }
-    this.match(order.effectiveTime);
-  }
-
   // called continuously when order book changes
   // whenever bid, ask, cancel are called
   protected match(time: string) {
@@ -94,14 +85,6 @@ export default abstract class OrderBook {
 
       highestBidPrice = buyPrices[0];
       lowestAskPrice = sellPrices[0];
-
-      if (clearingAsk.onFillCallback) {
-        clearingAsk.onFillCallback(fill);
-      }
-
-      if (clearingBid.onFillCallback) {
-        clearingBid.onFillCallback(fill);
-      }
     }
   }
 

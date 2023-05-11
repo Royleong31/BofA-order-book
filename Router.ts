@@ -30,40 +30,41 @@ export default class Router {
 
   addToSOR(time: string, orderInput: OrderInput) {
     // TODO: Calculate splitting
+    // TODO: Change order id so no collision
 
     // Splitting orders in half for SOR for lit and dark pools for now
-    const darkPoolOrder = new Order({
-      id: orderInput.id,
-      effectiveTime: time,
-      price: orderInput.price,
-      quantity: orderInput.quantity / 2,
-      side: orderInput.side,
-      status: OrderStatus.NEW,
-      venue: OrderBookType.DARK_POOL,
-      onFillCallback: (fill: Fill) => {
-        this.sorDarkPoolFills.push(fill);
-      },
-    });
+    // const darkPoolOrder = new Order({
+    //   id: orderInput.id,
+    //   effectiveTime: time,
+    //   price: orderInput.price,
+    //   quantity: orderInput.quantity / 2,
+    //   side: orderInput.side,
+    //   status: OrderStatus.NEW,
+    //   venue: OrderBookType.DARK_POOL,
+    //   onFillCallback: (fill: Fill) => {
+    //     this.sorDarkPoolFills.push(fill);
+    //   },
+    // });
 
     const litPoolOrder = new Order({
       id: orderInput.id,
       effectiveTime: time,
       price: orderInput.price,
-      quantity: orderInput.quantity / 2,
+      quantity: orderInput.quantity,
       side: orderInput.side,
       status: OrderStatus.NEW,
       venue: OrderBookType.LIT_POOL,
     });
 
-    this.sorDarkPoolOrdersPlaced.push(darkPoolOrder);
+    // this.sorDarkPoolOrdersPlaced.push(darkPoolOrder);
 
-    this.darkPool.placeOrder(darkPoolOrder);
+    // this.darkPool.placeOrder(darkPoolOrder);
     this.litPool.placeOrder(litPoolOrder);
   }
 
   calculateSorOrderBookState() {
     const litPoolCurBook = this.litPool.getBookData();
-    
+
     // get all ticks for the orders placed
     // get all ticks for fills
     // subtract fills from orders placed to get the current book state
