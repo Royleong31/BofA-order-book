@@ -1,5 +1,5 @@
 import OrderInjector from './OrderInjector';
-import Router from './Router';
+import Router from './OrderRouter';
 import DarkPool from './orderBook/DarkPool';
 import LitPool from './orderBook/LitPool';
 
