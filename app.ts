@@ -4,7 +4,7 @@ import Router from "./Router";
 function main() {
   const router = new Router();
 
-  const orderInjector = new OrderInjector(router);
+  const orderInjector = new OrderInjector(router); //inject Router dependency
   orderInjector.startExchange();
 }
 
