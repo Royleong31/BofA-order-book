@@ -5,35 +5,7 @@ import Router from './Router';
 import Order from './orders/Order';
 import OrderStatus from './enums/OrderStatus';
 import OrderBookType from './enums/OrderBookType';
-
-const tagDict: Record<string, string> = {
-  '54': 'side',
-  '40': 'orderType',
-  '44': 'price',
-  '11': 'id',
-  '38': 'quantity',
-  '49': 'senderApplication',
-  '100': 'destination',
-  '168': 'effectiveTime',
-  '126': 'expiryTime',
-  '35': 'messageType',
-  '39': 'orderStatus',
-  '30': 'fillVenue',
-  '31': 'fillPrice',
-  '32': 'fillQuantity',
-  '14': 'cumulativeQuantity',
-  '6': 'avgFillPrice',
-  '60': 'fillTime',
-};
-
-export interface OrderInput {
-  messageType: string;
-  id: string;
-  side: OrderSide;
-  quantity: number;
-  price: number;
-  destination: 'L' | 'D' | 'SOR';
-}
+import tagDict from './consts/tagDict';
 
 export default class OrderInjector {
   router: Router;
@@ -58,13 +30,13 @@ export default class OrderInjector {
       lineDataObj['time'] = time;
       // lineData[1:] are individual orders
       // for orders in lineData[1:]
-      const orders = lineData.slice(1, lineData.length);
-      const rawLineOrders = orders.map(
+      let orders = lineData.slice(1, lineData.length);
+      orders = orders.map(
         (order: any) => order.slice(0, order.length - 1) // remove last semicolon
       );
       const lineOrders: any = [];
 
-      for (let rawOrderInfo of rawLineOrders) {
+      for (let rawOrderInfo of orders) {
         const orderInfo = rawOrderInfo.split(';'); // 11=LIT-3;54=2;38=2500;44=100.2;100=L
 
         // for this current order, loop through semicolon, orderInfo
@@ -91,17 +63,43 @@ export default class OrderInjector {
     });
   }
 
-  // takes in raw csv line, returns lineDataObj. Contains time stamp and orders arr
+  // takes in single csv line, returns lineDataObj. Contains time stamp and orders arr
   private processLine(line: string) {
-    const lineDataObj = {
+    const lineDataObj: any = {
       time: '',
       orders: [],
     };
-    const lineTokens = line.split(',');
+    const orders: Array<OrderInput> = [];
+
+    const lineTokens: string[] = line.split(',');
     lineDataObj['time'] = lineTokens[0]; // [time, order1, order2, ...]
 
     const rawOrderArr = lineTokens.slice(1); //[order1, order2, ...]
-    
+    for (let rawOrder of rawOrderArr) {
+      orders.push(this.processOrder(rawOrder));
+    }
+    lineDataObj.orders = orders;
+  }
+
+  private processOrder(order: string) {
+    const processedOrder: any = {};
+    let orderInfoArr: string[] = order.split(';');
+    orderInfoArr = orderInfoArr.slice(0, orderInfoArr.length - 1); //omit last semicolon
+
+    for (let orderInfo of orderInfoArr) {
+      //44=100.2 -> [44, 100.2]
+      const { key, val } = {
+        key: orderInfo.split('=')[0],
+        val: orderInfo.split('=')[1],
+      };
+      if (key === '54') {
+        processedOrder[tagDict[key]] =
+          val === '1' ? OrderSide.BUY : OrderSide.SELL;
+      } else {
+        processedOrder[tagDict[key]] = val;
+      }
+    }
+    return processedOrder;
   }
 
   orderHelper(orderInputs: Array<{ time: string; orders: OrderInput[] }>) {
@@ -142,4 +140,13 @@ export default class OrderInjector {
       throw 'invalid order destination';
     }
   }
+}
+
+export interface OrderInput {
+  messageType: string;
+  id: string;
+  side: OrderSide;
+  quantity: number;
+  price: number;
+  destination: 'L' | 'D' | 'SOR';
 }
