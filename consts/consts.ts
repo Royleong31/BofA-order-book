@@ -1,4 +1,4 @@
-const tagDict: Record<string, string> = {
+export const tagDict: Record<string, string> = {
   '54': 'side',
   '40': 'orderType',
   '44': 'price',
@@ -18,4 +18,4 @@ const tagDict: Record<string, string> = {
   '60': 'fillTime',
 };
 
-export default tagDict;
+export const COMMISSION_RATE = 0.0001;

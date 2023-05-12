@@ -5,7 +5,7 @@ import Router from './OrderRouter';
 import Order from './orders/Order';
 import OrderStatus from './enums/OrderStatus';
 import OrderBookType from './enums/OrderBookType';
-import tagDict from './consts/tagDict';
+import { tagDict } from './consts/consts';
 
 export default class OrderInjector {
   router: Router;

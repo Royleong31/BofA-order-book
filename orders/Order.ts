@@ -2,6 +2,7 @@ import Fill from "../Fill";
 import OrderBookType from "../enums/OrderBookType";
 import OrderStatus from "../enums/OrderStatus";
 import OrderSide from "../enums/OrderSide";
+import { COMMISSION_RATE } from '../consts/consts';
 
 interface OrderInput {
   side: OrderSide;
@@ -50,7 +51,7 @@ export default class Order {
 
     if (this.venue === OrderBookType.LIT_POOL) {
       // 0.0001% of the total price
-      this.commission += (fill.price * fill.quantity * 0.0001) / 100;
+      this.commission += (fill.price * fill.quantity * COMMISSION_RATE) / 100;
     }
 
     console.log(
@@ -62,7 +63,6 @@ export default class Order {
       this.status = OrderStatus.PARTIAL;
     } else {
       this.status = OrderStatus.FULL;
-
       console.log(
         `[${this.id}] [${this.venue}] Completed Average fill price: ${this.averageFillPrice()}`
       );
