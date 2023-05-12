@@ -20,46 +20,15 @@ export default class OrderInjector {
       // input: fs.createReadStream("./csv/testdata_orders.csv"),
       input: fs.createReadStream('./csv/testdata_orders_simpler_case.csv'),
     });
-    const allLineDataObjs: any = [];
+    const lineDataArr: any = [];
 
-    //loop through each line (time, order1, order2, ...)
-    lineReader.on('line', function (line: any) {
-      const lineDataObj: any = {};
-      const lineData = line.split(',');
-      const time = lineData[0];
-      lineDataObj['time'] = time;
-      // lineData[1:] are individual orders
-      // for orders in lineData[1:]
-      let orders = lineData.slice(1, lineData.length);
-      orders = orders.map(
-        (order: any) => order.slice(0, order.length - 1) // remove last semicolon
-      );
-      const lineOrders: any = [];
-
-      for (let rawOrderInfo of orders) {
-        const orderInfo = rawOrderInfo.split(';'); // 11=LIT-3;54=2;38=2500;44=100.2;100=L
-
-        // for this current order, loop through semicolon, orderInfo
-        const orderObj: any = {};
-        for (let orderDetail of orderInfo) {
-          const orderInfo = orderDetail.split('=');
-          if (orderInfo[0] === '54') {
-            orderObj['side'] =
-              orderInfo[1] === '1' ? OrderSide.BUY : OrderSide.SELL;
-          } else {
-            orderObj[tagDict[orderInfo[0]]] = orderInfo[1];
-          }
-        }
-
-        lineOrders.push(orderObj);
-      }
-
-      lineDataObj['orders'] = lineOrders;
-      allLineDataObjs.push(lineDataObj);
+    lineReader.on('line', (line: string) => {
+      const lineData: any = this.processLine(line);
+      lineDataArr.push(lineData);
     });
 
     lineReader.on('close', () => {
-      this.orderHelper(allLineDataObjs);
+      this.orderHelper(lineDataArr);
     });
   }
 
@@ -72,19 +41,20 @@ export default class OrderInjector {
     const orders: Array<OrderInput> = [];
 
     const lineTokens: string[] = line.split(',');
-    lineDataObj['time'] = lineTokens[0]; // [time, order1, order2, ...]
+    lineDataObj['time'] = lineTokens[0]; // line: [time, order1, order2, ...]
 
     const rawOrderArr = lineTokens.slice(1); //[order1, order2, ...]
     for (let rawOrder of rawOrderArr) {
-      orders.push(this.processOrder(rawOrder));
+      orders.push(this.processOrder(rawOrder)); //process each order
     }
     lineDataObj.orders = orders;
+    return lineDataObj;
   }
 
   private processOrder(order: string) {
     const processedOrder: any = {};
-    let orderInfoArr: string[] = order.split(';');
-    orderInfoArr = orderInfoArr.slice(0, orderInfoArr.length - 1); //omit last semicolon
+    order = order.slice(0, order.length - 1);
+    let orderInfoArr: string[] = order.split(';'); //order: [k1=v1;k2=v2;...]
 
     for (let orderInfo of orderInfoArr) {
       //44=100.2 -> [44, 100.2]
@@ -124,17 +94,19 @@ export default class OrderInjector {
     });
 
     if (destination === 'L') {
+      // Add to Lit Pool
       console.log(
         `[${order.id}][${order.venue}] ${order.side} ${order.quantity} @ ${order.price}`
       );
-
       this.router.addToLitPool(order);
     } else if (destination === 'D') {
+      //Add to Dark Pool
       this.router.addToDarkPool(order);
       console.log(
         `[${order.id}][${order.venue}] ${order.side} ${order.quantity} @ ${order.price}`
       );
     } else if (destination === 'SOR') {
+      //Add to Smart Order Router
       this.router.addToSOR(time, orderInput);
     } else {
       throw 'invalid order destination';
