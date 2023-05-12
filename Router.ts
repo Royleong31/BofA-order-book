@@ -1,12 +1,12 @@
-import LitPool from "./orderBook/LitPool";
-import DarkPool from "./orderBook/DarkPool";
-import { OrderInput } from "./OrderInjector";
-import Order from "./orders/Order";
-import OrderSide from "./enums/OrderSide";
-import OrderStatus from "./enums/OrderStatus";
-import OrderBookType from "./enums/OrderBookType";
-import Fill from "./Fill";
-import _ from "lodash";
+import LitPool from './orderBook/LitPool';
+import DarkPool from './orderBook/DarkPool';
+import { OrderInput } from './OrderInjector';
+import Order from './orders/Order';
+import OrderSide from './enums/OrderSide';
+import OrderStatus from './enums/OrderStatus';
+import OrderBookType from './enums/OrderBookType';
+import Fill from './Fill';
+import _ from 'lodash';
 
 export default class Router {
   private litPool: LitPool;
@@ -16,9 +16,9 @@ export default class Router {
   private sorDarkPoolFills: Fill[] = [];
   private sorDarkPoolOrdersPlaced: Order[] = [];
 
-  constructor() {
-    this.litPool = new LitPool();
-    this.darkPool = new DarkPool();
+  constructor(litPool: LitPool, darkPool: DarkPool) {
+    this.litPool = litPool;
+    this.darkPool = darkPool;
   }
 
   addToLitPool(order: Order) {
@@ -68,7 +68,11 @@ export default class Router {
     this.litPool.placeOrder(litPoolOrder);
   }
 
-  calculateQuantityToDarkPool(price: number, quantity: number, side: OrderSide) {
+  calculateQuantityToDarkPool(
+    price: number,
+    quantity: number,
+    side: OrderSide
+  ) {
     // const litPoolCurBook = this.litPool.getBookData();
 
     // bid/ask tables of orders by the SOR into the dark pool
@@ -84,13 +88,15 @@ export default class Router {
           darkPoolSubsetBids[Number(order.price).toFixed(2)] = 0;
         }
 
-        darkPoolSubsetBids[Number(order.price).toFixed(2)] += order.remainingQuantity();
+        darkPoolSubsetBids[Number(order.price).toFixed(2)] +=
+          order.remainingQuantity();
       } else {
         if (darkPoolSubsetAsks[Number(order.price).toFixed(2)] === undefined) {
           darkPoolSubsetAsks[Number(order.price).toFixed(2)] = 0;
         }
 
-        darkPoolSubsetAsks[Number(order.price).toFixed(2)] += order.remainingQuantity();
+        darkPoolSubsetAsks[Number(order.price).toFixed(2)] +=
+          order.remainingQuantity();
       }
     }
 
@@ -130,20 +136,21 @@ export default class Router {
     // Super simple algo to clear as many orders as possible through dark pool with full certainty of filling to minimise commissions
     let quantityBetterThanOrderPrice = 0;
     if (side === OrderSide.BUY) {
-      const askPricesBetterThanOrderPrice = Object.keys(darkPoolSubsetAsks).filter(
-        (askPrice) => Number(askPrice) <= price
-      );
+      const askPricesBetterThanOrderPrice = Object.keys(
+        darkPoolSubsetAsks
+      ).filter((askPrice) => Number(askPrice) <= price);
 
       for (let askPrice of askPricesBetterThanOrderPrice) {
         quantityBetterThanOrderPrice += darkPoolSubsetAsks[askPrice];
       }
     } else {
-      const bidPricesBetterThanOrderPrices = Object.keys(darkPoolSubsetBids).filter(
-        (bidPrice) => Number(bidPrice) >= price
-      );
+      const bidPricesBetterThanOrderPrices = Object.keys(
+        darkPoolSubsetBids
+      ).filter((bidPrice) => Number(bidPrice) >= price);
 
       for (let quantityAboveAskPrice of bidPricesBetterThanOrderPrices) {
-        quantityBetterThanOrderPrice += darkPoolSubsetBids[quantityAboveAskPrice];
+        quantityBetterThanOrderPrice +=
+          darkPoolSubsetBids[quantityAboveAskPrice];
       }
     }
 

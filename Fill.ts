@@ -5,7 +5,6 @@ interface FillInput {
   price: number; // clearing price, better than or equal to order price
   quantity: number; // quantity filled, order qnt or less
   time: string;
-
   bidOrderId: string;
   askOrderId: string;
 }

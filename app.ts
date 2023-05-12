@@ -1,10 +1,14 @@
-import OrderInjector from "./OrderInjector";
-import Router from "./Router";
+import OrderInjector from './OrderInjector';
+import Router from './Router';
+import DarkPool from './orderBook/DarkPool';
+import LitPool from './orderBook/LitPool';
 
 function main() {
-  const router = new Router();
+  const litPool = new LitPool();
+  const darkPool = new DarkPool();
+  const router = new Router(litPool, darkPool);
 
-  const orderInjector = new OrderInjector(router); //inject Router dependency
+  const orderInjector = new OrderInjector(router);
   orderInjector.startExchange();
 }
 

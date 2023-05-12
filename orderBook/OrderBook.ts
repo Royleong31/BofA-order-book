@@ -1,8 +1,8 @@
-import Fill from "../Fill";
-import OrderBookType from "../enums/OrderBookType";
-import OrderSide from "../enums/OrderSide";
-import Order from "../orders/Order";
-import { compareTime } from "../utils/compareTime";
+import Fill from '../Fill';
+import OrderBookType from '../enums/OrderBookType';
+import OrderSide from '../enums/OrderSide';
+import Order from '../orders/Order';
+import { compareTime } from '../utils/compareTime';
 
 export default abstract class OrderBook {
   abstract venue: OrderBookType;
@@ -14,55 +14,43 @@ export default abstract class OrderBook {
 
   placeOrder(order: Order) {
     if (order.side === OrderSide.BUY) {
-      if (this.bidTable[Number(order.price).toFixed(2)] === undefined) {
-        this.bidTable[Number(order.price).toFixed(2)] = [];
-      }
-
+      this.bidTable[Number(order.price).toFixed(2)] ||= [];
       this.bidTable[Number(order.price).toFixed(2)].push(order);
     } else if (order.side === OrderSide.SELL) {
-      if (this.askTable[Number(order.price).toFixed(2)] === undefined) {
-        this.askTable[Number(order.price).toFixed(2)] = [];
-      }
-
+      this.askTable[Number(order.price).toFixed(2)] ||= [];
       this.askTable[Number(order.price).toFixed(2)].push(order);
     }
-
     this.match(order.effectiveTime);
   }
 
   // called continuously when order book changes
   // whenever bid, ask, cancel are called
   protected match(time: string) {
-    // desc order
-    const buyPrices = Object.keys(this.bidTable)
-      .map((price) => price)
-      .sort((a, b) => +b - +a);
+    let { highestBidPrice, lowestAskPrice } = this.getBestPrices();
 
-    // asc order
-    const sellPrices = Object.keys(this.askTable)
-      .map((price) => price)
-      .sort((a, b) => +a - +b);
-
-    let highestBidPrice = Number(buyPrices[0]);
-    let lowestAskPrice = Number(sellPrices[0]);
-
+    // each iteration will generate 1 fill
     while (highestBidPrice >= lowestAskPrice) {
-      // each iteraction will generate 1 fill
-      const clearingBid = this.bidTable[highestBidPrice.toFixed(2)][0];
-      const clearingAsk = this.askTable[lowestAskPrice.toFixed(2)][0];
-      // want the earlier order to be the clearing price if the prices are different
-      // if it's the same, will use the clearingBid price
-      // TODO: Use an order counter
+      const clearingBid: Order = this.bidTable[highestBidPrice.toFixed(2)][0];
+      const clearingAsk: Order = this.askTable[lowestAskPrice.toFixed(2)][0];
+      // Want the earlier order to be the clearing price if the prices are different
+      // Assumption: If time is the same, will use the clearingBid price
+      // TODO: Use an order counter to tie-break same time
 
-      const price = compareTime(clearingAsk.effectiveTime, clearingBid.effectiveTime)
+      const clearingPrice = compareTime(
+        clearingAsk.effectiveTime,
+        clearingBid.effectiveTime
+      )
         ? clearingBid.price
         : clearingAsk.price;
 
       const fill = new Fill({
         askOrderId: clearingAsk.id,
         bidOrderId: clearingBid.id,
-        price: price,
-        quantity: Math.min(clearingBid.remainingQuantity(), clearingAsk.remainingQuantity()),
+        price: clearingPrice,
+        quantity: Math.min(
+          clearingBid.remainingQuantity(),
+          clearingAsk.remainingQuantity()
+        ),
         time,
         venue: this.venue,
       });
@@ -105,6 +93,23 @@ export default abstract class OrderBook {
       highestBidPrice = Number(buyPrices[0]);
       lowestAskPrice = Number(sellPrices[0]);
     }
+  }
+
+  getBestPrices() {
+    // desc order
+    const buyPrices = Object.keys(this.bidTable)
+      .map((price) => price)
+      .sort((a, b) => +b - +a);
+
+    // asc order
+    const sellPrices = Object.keys(this.askTable)
+      .map((price) => price)
+      .sort((a, b) => +a - +b);
+
+    // first element is best price
+    let highestBidPrice = Number(buyPrices[0]);
+    let lowestAskPrice = Number(sellPrices[0]);
+    return { highestBidPrice, lowestAskPrice };
   }
 
   // remove from order book but keep in OrderRouter
